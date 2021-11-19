@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\vec">
+      <UniqueIdentifier>{04594bdb-c1b7-4c81-b00a-814e27712178}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vec">
+      <UniqueIdentifier>{47c14b7e-12b6-41b0-905b-df03ef9403fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\screen">
+      <UniqueIdentifier>{cb5efe00-3073-4775-b28e-72ac0d3d7cd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\screen">
+      <UniqueIdentifier>{e6b229f7-8487-4903-9493-36d23e6b0bfe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\models">
+      <UniqueIdentifier>{3df30ba8-8a79-4289-8cb6-3badca5b4557}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\models">
+      <UniqueIdentifier>{390c762c-d978-4017-a109-bc18578ca281}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\math">
+      <UniqueIdentifier>{a51987ad-203d-4209-aea5-a3dd931a4733}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\math">
+      <UniqueIdentifier>{a467bb45-fccd-4841-92e3-ae5bb38ff047}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VecFunctions.cpp">
+      <Filter>Source Files\vec</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenPreparer.cpp">
+      <Filter>Source Files\screen</Filter>
+    </ClCompile>
+    <ClCompile Include="Vec3.cpp">
+      <Filter>Source Files\vec</Filter>
+    </ClCompile>
+    <ClCompile Include="Vec2.cpp">
+      <Filter>Source Files\vec</Filter>
+    </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="Box.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="Plane.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
+    <ClCompile Include="OverloadedMathFuncs.cpp">
+      <Filter>Source Files\math</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Vec2.h">
+      <Filter>Header Files\vec</Filter>
+    </ClInclude>
+    <ClInclude Include="Vec3.h">
+      <Filter>Header Files\vec</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenPreparer.h">
+      <Filter>Header Files\screen</Filter>
+    </ClInclude>
+    <ClInclude Include="Box.h">
+      <Filter>Header Files\models</Filter>
+    </ClInclude>
+    <ClInclude Include="Plane.h">
+      <Filter>Header Files\models</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>Header Files\models</Filter>
+    </ClInclude>
+    <ClInclude Include="OverloadedMathFuncs.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
