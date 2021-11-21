@@ -76,4 +76,8 @@ int main() {
 		}
 		RedrawScreenBuffer(hConsole, screenBuffer);
 	}
+
+	DestroyScreenBuffer(screenBuffer);
+
+	return 0;
 }

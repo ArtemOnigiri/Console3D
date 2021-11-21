@@ -11,5 +11,6 @@ const size_t ANIMATION_TIME = 10000;
 
 void PrepareWindow(size_t width, size_t height);
 void RedrawScreenBuffer(HANDLE hConsole, wchar_t* &screenBuffer);
+void DestroyScreenBuffer(wchar_t* &screenBuffer);
 HANDLE GetConsoleHandle();
 wchar_t* CreateScreenBuffer();

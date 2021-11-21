@@ -131,7 +131,6 @@
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Vec2.cpp" />
     <ClCompile Include="Vec3.cpp" />
-    <ClCompile Include="VecFunctions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Box.h" />

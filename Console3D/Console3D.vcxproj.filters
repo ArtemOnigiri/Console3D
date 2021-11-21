@@ -42,9 +42,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VecFunctions.cpp">
-      <Filter>Source Files\vec</Filter>
-    </ClCompile>
     <ClCompile Include="ScreenPreparer.cpp">
       <Filter>Source Files\screen</Filter>
     </ClCompile>

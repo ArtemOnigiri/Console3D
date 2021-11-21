@@ -27,6 +27,10 @@ wchar_t* CreateScreenBuffer() {
 	return new wchar_t[WINDOW_WIDTH * WINDOW_HEIGHT];
 }
 
+void DestroyScreenBuffer(wchar_t* &buffer) {
+	delete[] buffer;
+}
+
 void RedrawScreenBuffer(HANDLE hConsole, wchar_t* &screenBuffer) {
 	DWORD dwBytesWritten = 0;
 	screenBuffer[WINDOW_WIDTH * WINDOW_HEIGHT - 1] = '\0';
