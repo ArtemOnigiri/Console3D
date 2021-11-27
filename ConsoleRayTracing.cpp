@@ -10,6 +10,8 @@ int width = 120 * 2, height = 30 * 2;
 
 // Windows
 #include <windows.h>
+#include <conio.h>
+
 int findWindowSize() {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 
