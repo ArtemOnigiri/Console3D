@@ -10,7 +10,7 @@ int width = 120 * 2, height = 30 * 2;
 
 // Windows
 #include <windows.h>
-int findWindowSize(int argc, char *argv[]) {
+int findWindowSize() {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 
 	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
@@ -32,7 +32,6 @@ void findWindowSize() {
 	width = w.ws_col;
 }
 #endif
-
 
 int main() {
 
@@ -102,7 +101,14 @@ int main() {
 		for (int i = 0; i < height; i++) {
 			std::cout << screen[i] << "\n";
 		}
-		std::cout << "\033[0;0f";
+
+		#if defined(_WIN32) || defined(_WIN64)
+			gotoxy(1,1);
+		#else
+			std::cout << "\033[0;0f";
+		#endif
+		
 		std::cout.flush();
 	}
 }
+
