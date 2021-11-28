@@ -2,46 +2,18 @@
 #include <vector>
 #include <string>
 #include <math.h>
+
 #include "VecFunctions.h"
-
-int width = 120 * 2, height = 30 * 2;
-
-#if defined(_WIN32) || defined(_WIN64)
-
-// Windows
-#include <windows.h>
-#include <conio.h>
-
-int findWindowSize() {
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-	width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-	height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-}
-
-#else
-
-// *nix
-#include <sys/ioctl.h>
-#include <stdio.h>
-#include <unistd.h>
-
-void findWindowSize() {
-	struct winsize w;
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	height = w.ws_row - 1;
-	width = w.ws_col;
-}
-#endif
+#include "platforms.cpp"
 
 int main() {
 
 	std::ios_base::sync_with_stdio(false);
 	std::cin.tie(NULL);
-
-	findWindowSize();
 	
+	clearScreen();
+	findWindowSize();
+
 	float aspect = (float)width / height;
 	float pixelAspect = 11.0f / 24.0f;
 	std::string gradient = " .:!/r(l1Z4H9W8$@";
@@ -103,14 +75,8 @@ int main() {
 		for (int i = 0; i < height; i++) {
 			std::cout << screen[i] << "\n";
 		}
-
-		#if defined(_WIN32) || defined(_WIN64)
-			gotoxy(1,1);
-		#else
-			std::cout << "\033[0;0f";
-		#endif
-		
 		std::cout.flush();
+		gotoxy(0,0);
+		
 	}
 }
-
