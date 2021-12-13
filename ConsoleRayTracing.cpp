@@ -1,7 +1,8 @@
-#include <iostream>
+﻿#include <iostream>
 #include <stdio.h>
 #include <math.h>
 #include <windows.h>
+#include <array>
 #include "VecFunctions.h"
 
 void SetWindow(int Width, int Height)
@@ -19,33 +20,82 @@ void SetWindow(int Width, int Height)
 	SetConsoleWindowInfo(Handle, TRUE, &Rect);
 }
 
+std::array<vec2, 2> rot(float a) {
+	float s = sin(a);
+	float c = cos(a);
+	std::array<vec2, 2> matrix = {vec2(c, -s), vec2(s, c)};
+	return matrix;
+}
+
 int main() {
-	int width = 120 * 2;
-	int height = 30 * 2;
+	int width = 175;
+	int height = 45;
+	int w = 2560;
+	int h = 1440;
+	int mouseX = w / 2;
+	int mouseY = h / 2;
 	SetWindow(width, height);
 	float aspect = (float)width / height;
 	float pixelAspect = 11.0f / 24.0f;
-	char gradient[] = " .:!/r(l1Z4H9W8$@";
+	char gradient[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/|()1{}[]?-_+~<>i!lI;:,^ `'.";
 	int gradientSize = std::size(gradient) - 2;
+	float mouseSensitivity = 1.0f;
+	bool wasdUD[6] = { false, false, false, false, false, false };
+	float speed = 0.3f;
+	vec3 pos = vec3(-6, 0, 0);
 
 	wchar_t* screen = new wchar_t[width * height];
 	HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(hConsole);
 	DWORD dwBytesWritten = 0;
-
-	for (int t = 0; t < 10000; t++) {
+	int t = 0;
+	while (true) {
 		vec3 light = norm(vec3(-0.5, 0.5, -1.0));
 		vec3 spherePos = vec3(0, 3, 0);
+
+		POINT p;
+		GetCursorPos(&p);
+		float mx = p.x - w / 2;
+		float my = p.y - h / 2;
+		mouseX += mx;
+		mouseY += my;
+		SetCursorPos(w / 2, h / 2);
+
+		if (GetAsyncKeyState(VK_ESCAPE)) break;
+		else if (GetAsyncKeyState(87)) wasdUD[0] = true;
+		else if (GetAsyncKeyState(65)) wasdUD[1] = true;
+		else if (GetAsyncKeyState(83)) wasdUD[2] = true;
+		else if (GetAsyncKeyState(68)) wasdUD[3] = true;
+		else if (GetAsyncKeyState(32)) wasdUD[4] = true;
+		else if (GetAsyncKeyState(67)) wasdUD[5] = true;
+		else if (GetAsyncKeyState(16)) speed = 0.6f;
+
+		mx = ((float)mouseX / w - 0.5f) * mouseSensitivity;
+		my = ((float)mouseY / h - 0.5f) * mouseSensitivity;
+		vec3 dir = vec3(0.0f, 0.0f, 0.0f);
+		vec3 dirTemp = vec3(0);
+		if (wasdUD[0]) dir = vec3(1.0f, 0.0f, 0.0f);
+		else if (wasdUD[2]) dir = vec3(-1.0f, 0.0f, 0.0f);
+		if (wasdUD[1]) dir = dir + vec3(0.0f, -1.0f, 0.0f);
+		else if (wasdUD[3]) dir = dir + vec3(0.0f, 1.0f, 0.0f);
+		dirTemp.z = dir.z * cos(-my) - dir.x * sin(-my);
+		dirTemp.x = dir.z * sin(-my) + dir.x * cos(-my);
+		dirTemp.y = dir.y;
+		dir.x = dirTemp.x * cos(mx) - dirTemp.y * sin(mx);
+		dir.y = dirTemp.x * sin(mx) + dirTemp.y * cos(mx);
+		dir.z = dirTemp.z;
+		pos = pos + dir * speed;
+		if (wasdUD[4]) pos.z -= speed;
+		else if (wasdUD[5]) pos.z += speed;
+
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
 				vec2 uv = vec2(i, j) / vec2(width, height) * 2.0f - 1.0f;
 				uv.x *= aspect * pixelAspect;
-				vec3 ro = vec3(-6, 0, 0);
+				vec3 ro = pos;
 				vec3 rd = norm(vec3(2, uv));
-				ro = rotateY(ro, 0.25);
-				rd = rotateY(rd, 0.25);
-				ro = rotateZ(ro, t * 0.01);
-				rd = rotateZ(rd, t * 0.01);
+				rd = rotateY(rd, my);
+				rd = rotateZ(rd, mx);
 				float diff = 1;
 				for (int k = 0; k < 5; k++) {
 					float minIt = 99999;
@@ -76,13 +126,17 @@ int main() {
 					}
 					else break;
 				}
-				int color = (int)(diff * 20);
+				int color = (int)(diff * 30);
 				color = clamp(color, 0, gradientSize);
-				char pixel = gradient[color];
+				char pixel = gradient[gradientSize - color];
 				screen[i + j * width] = pixel;
 			}
 		}
 		screen[width * height - 1] = '\0';
 		WriteConsoleOutputCharacter(hConsole, screen, width * height, { 0, 0 }, &dwBytesWritten);
+		++t;
+		for (int i = 0; i < 6; ++i) {
+			wasdUD[i] = false;
+		}
 	}
 }
