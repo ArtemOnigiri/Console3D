@@ -17,6 +17,7 @@ vec3 abs(vec3 const& v) { return vec3(fabs(v.x), fabs(v.y), fabs(v.z)); }
 vec3 sign(vec3 const& v) { return vec3(sign(v.x), sign(v.y), sign(v.z)); }
 vec3 step(vec3 const& edge, vec3 v) { return vec3(step(edge.x, v.x), step(edge.y, v.y), step(edge.z, v.z)); }
 vec3 reflect(vec3 rd, vec3 n) { return rd - n * (2 * dot(n, rd)); }
+vec3 mix(vec3 x, vec3 y, double a) { return x * vec3(1 - a) + y * vec3(a); }
 
 vec3 cross(vec3 a, vec3 b) {
     vec3 r = vec3(0);
@@ -102,8 +103,7 @@ vec3 triangle(vec3 ro, vec3 rd, vec3 v0, vec3 v1, vec3 v2) {
     return vec3(t, u, v);
 }
 
-std::vector<std::vector<vec3>> Prism(int faces, double h, double ra, vec3 pos) {
-    std::vector<std::vector<vec3>> triangles(faces * 4, std::vector<vec3>(3, vec3(0)));
+void Prism(int faces, double h, double ra, vec3 pos, std::vector<std::vector<vec3>> &triangles) {
     double angle = 360 / faces * (3.1415926 / 180);
     for (int i = 0; i < faces; i++) {
         double x1 = pos.x + ra * cos(angle * i);
@@ -127,11 +127,9 @@ std::vector<std::vector<vec3>> Prism(int faces, double h, double ra, vec3 pos) {
             triangles[i + faces] = std::vector<vec3>({ triangles[i - faces][1], triangles[i + faces * 2][2], triangles[i + faces * 2][1] });
         }
     }
-    return triangles;
 }
 
-std::vector<std::vector<vec3>> Pyramid(int faces, double h, double ra, vec3 pos) {
-    std::vector<std::vector<vec3>> triangles(faces * 2);
+void Pyramid(int faces, double h, double ra, vec3 pos, std::vector<std::vector<vec3>> &triangles) {
     double angle = 360 / faces * (3.1415926 / 180);
     for (int i = 0; i < faces; i++) {
         double x1 = pos.x + ra * cos(angle * i);
@@ -143,5 +141,4 @@ std::vector<std::vector<vec3>> Pyramid(int faces, double h, double ra, vec3 pos)
     for (int i = 0; i < faces; i++) {
         triangles[i + faces] = std::vector<vec3>({ triangles[i][1], triangles[i][2], vec3(pos.x, pos.y, pos.z + h) });
     }
-    return triangles;
 }

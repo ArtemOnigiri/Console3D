@@ -21,6 +21,145 @@ void SetWindow(int Width, int Height)
 	SetConsoleWindowInfo(Handle, TRUE, &Rect);
 }
 
+vec3 light = norm(vec3(0.0, 0.0f, -1.0f));
+int frames = 0;
+std::vector<std::vector<vec3>> pyramid(3 * 2);
+std::vector<std::vector<vec3>> prism(5 * 4);
+
+vec3 sph1Pos = vec3(-3, 0.5, 0.2);
+vec3 sph2Pos = vec3(0);
+vec2 box1Pos = vec2(-2.6, -0.9);
+vec2 box2Pos = vec2(-0.4, -0.9);
+vec3 pyramidPos = vec3(-1.5, -2.5, 1);
+vec3 prismPos = vec3(1.5, 2.5, 1);
+
+double GetSky(vec3 rd) {
+	double col = 90.0;
+	double sun = 1.0;
+	sun *= max(0.0, pow(dot(rd, light), 128.0));
+	col *= max(0.0, dot(light, vec3(0.0, 0.0, -1.0)));
+	return clamp(sun + col * 0.01, 0.0, 1.0);
+}
+
+vec2 rotation(double r, double t, double d = 0.0)
+{
+	double time = (frames - d) - (t * floor((frames - d) / t));
+	if (frames < d) time = 0;
+	double angle = 360 * (time / t) * (3.1415926 / 180);
+	double x = r * cos(angle);
+	double y = r * sin(angle);
+	return vec2(x, y);
+}
+
+vec2 CastRay(vec3 &ro, vec3 &rd) {
+	double minIt = 9999;
+	vec2 col = vec2(0.0);
+	vec3 n = 0;
+
+	vec2 intersection = sphere(ro - sph1Pos, rd, 0.8);
+	if (intersection.x > 0) {
+		vec3 itPoint = ro - sph1Pos + rd * intersection.x;
+		minIt = intersection.x;
+		n = norm(itPoint);
+		col = vec2(1.0, -0.5);
+	}
+
+	intersection = sphere(ro - sph2Pos, rd, 1);
+	if (intersection.x > 0 && intersection.x < minIt) {
+		vec3 itPoint = ro - sph2Pos + rd * intersection.x;
+		minIt = intersection.x;
+		n = norm(itPoint);
+		col = vec2(1.0, 1.0);
+	}
+
+	vec3 boxN = 0;
+	if (frames >= 25) {
+		box1Pos = rotation(1.1, 50) + vec2(-1.5, -0.9);
+		box2Pos = rotation(1.1, 50, 25) + vec2(-1.5, -0.9);
+	}
+
+	intersection = box(ro - vec3(2.5, box1Pos.x, box1Pos.y), rd, vec3(0.9), boxN);
+	if (intersection.x > 0 && intersection.x < minIt) {
+		minIt = intersection.x;
+		n = boxN;
+		col = vec2(0.3, 1.0);
+	}
+
+	intersection = box(ro - vec3(2.5, box2Pos.x, box2Pos.y), rd, vec3(0.9), boxN);
+	if (intersection.x > 0 && intersection.x < minIt) {
+		minIt = intersection.x;
+		n = boxN;
+		col = vec2(0.3, 1.0);
+	}
+
+	intersection = sphere(ro - vec3(pyramidPos.x, pyramidPos.y, pyramidPos.z / 2), rd, 1.5);
+	if (intersection.x != -1 && intersection.x < minIt) {
+		for (int a = 0; a < pyramid.size(); ++a) {
+			intersection = vec2(triangle(ro, rd, pyramid[a][0], pyramid[a][1], pyramid[a][2]).x, triangle(ro, rd, pyramid[a][0], pyramid[a][1], pyramid[a][2]).z);
+			if (intersection.x > 0 && intersection.x < minIt) {
+				minIt = intersection.x;
+				vec3 v0 = pyramid[a][0] - pyramid[a][1];
+				vec3 v1 = pyramid[a][2] - pyramid[a][1];
+				n = norm(cross(v0, v1));
+				col = vec2(0.25, 1.0);
+			}
+		}
+	}
+
+	intersection = sphere(ro - vec3(prismPos.x, prismPos.y, -0.75), rd, 2);
+	if (intersection.x != -1 && intersection.x < minIt) {
+		for (int a = 0; a < prism.size(); ++a) {
+			intersection = vec2(triangle(ro, rd, prism[a][0], prism[a][1], prism[a][2]).x, triangle(ro, rd, prism[a][0], prism[a][1], prism[a][2]).z);
+			if (intersection.x > 0 && intersection.x < minIt) {
+				minIt = intersection.x;
+				vec3 v0 = prism[a][0] - prism[a][1];
+				vec3 v1 = prism[a][2] - prism[a][1];
+				n = norm(cross(v0, v1));
+				col = vec2(0.4, 1.0);
+			}
+		}
+	}
+
+	intersection = plane(ro, rd, vec3(0, 0, -1), 1);
+	if (intersection.x > 0 && intersection.x < minIt) {
+		minIt = intersection.x;
+		n = vec3(0, 0, -1);
+		col = vec2(0.35, 1.0);
+	}
+
+	if (minIt == 9999) return vec2(GetSky(rd), -2.0);
+
+	if (col.y == -2.0) return col;
+	vec3 reflected = reflect(rd, n);
+	if (col.y < 0.0) {
+		double fresnel = 1.0 - abs(dot(-rd, n));
+		if ((double)(rand()) / ((double)(RAND_MAX)) - 0.1 < fresnel * fresnel) {
+			rd = reflected;
+			return col;
+		}
+		ro = ro + rd * (minIt + 0.001);
+		rd = refract(rd, n, 1.0 / (1.0 - col.y));
+		return col;
+	}
+	vec3 itPos = ro + rd * intersection.x;
+	vec3 r = vec3(rand(), rand(), rand());
+	vec3 diffuse = norm(r * dot(r, n));
+	ro = ro + rd * (minIt - 0.001);
+	rd = mix(diffuse, reflected, col.y);
+	return col;
+}
+
+double TraceRay(vec3 ro, vec3 rd) {
+	double col = 1.0;
+	for (int i = 0; i < 4; i++)
+	{
+		vec2 refCol = CastRay(ro, rd);
+		col *= refCol.x;
+		if (refCol.y == -2.0) return col;
+	}
+	return 0.0;
+}
+
 int main() {
 	int width = 240;
 	int height = 68;
@@ -37,19 +176,18 @@ int main() {
 
 	double mouseSensitivity = 2.0f;
 	bool wasdUD[6] = { false, false, false, false, false, false };
-	double speed = 0.7f;
-	vec3 pos = vec3(-6, -1, -1);
+	double speed = 0.3f;
+	vec3 pos = vec3(-8, -2, -2);
 
 	wchar_t* screen = new wchar_t[width * height];
 	HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(hConsole);
 	DWORD dwBytesWritten = 0;
-	int t = 0;
+
+	Pyramid(3, -2.0, 1.5, pyramidPos, pyramid);
+	Prism(5, -3.0, 1.0, prismPos, prism);
 
 	while (true) {
-		vec3 light = norm(vec3(-0.5, 0.5, -1.0));
-		vec3 spherePos = vec3(0, 3, 0);
-
 		POINT p;
 		GetCursorPos(&p);
 		double mx = p.x - w / 2;
@@ -59,12 +197,12 @@ int main() {
 		SetCursorPos(w / 2, h / 2);
 
 		if (GetAsyncKeyState(VK_ESCAPE)) break;
-		else if (GetAsyncKeyState(87)) wasdUD[0] = true;
-		else if (GetAsyncKeyState(65)) wasdUD[1] = true;
-		else if (GetAsyncKeyState(83)) wasdUD[2] = true;
-		else if (GetAsyncKeyState(68)) wasdUD[3] = true;
-		else if (GetAsyncKeyState(32)) wasdUD[4] = true;
-		else if (GetAsyncKeyState(67)) wasdUD[5] = true;
+		if (GetAsyncKeyState(87)) wasdUD[0] = true;
+		if (GetAsyncKeyState(65)) wasdUD[1] = true;
+		if (GetAsyncKeyState(83)) wasdUD[2] = true;
+		if (GetAsyncKeyState(68)) wasdUD[3] = true;
+		if (GetAsyncKeyState(32)) wasdUD[4] = true;
+		if (GetAsyncKeyState(67)) wasdUD[5] = true;
 
 		mx = ((double)mouseX / w - 0.5f) * mouseSensitivity;
 		my = ((double)mouseY / h - 0.5f) * mouseSensitivity;
@@ -92,91 +230,18 @@ int main() {
 				vec3 rd = norm(vec3(2, uv));
 				rd = rotateY(rd, my);
 				rd = rotateZ(rd, mx);
-				double diff = 1;
-
-				for (int k = 0; k < 4; k++) {
-					double minIt = 99999;
-
-					vec2 intersection = sphere(ro - spherePos, rd, 1);
-					vec3 n = 0;
-					double albedo = 0.0;
-					if (intersection.x > 0) {
-						vec3 itPoint = ro - spherePos + rd * intersection.x;
-						minIt = intersection.x;
-						n = norm(itPoint);
-						albedo = -0.5;
-					}
-
-					vec3 boxN = 0;
-					intersection = box(ro, rd, 1, boxN);
-					if (intersection.x > 0 && intersection.x < minIt) {
-						minIt = intersection.x;
-						n = boxN;
-						albedo = 1.0;
-					}
-
-					std::vector<std::vector<vec3>> prism = Prism(6, -3.0, 1.0, vec3(3, -4, 1));
-					for (int a = 0; a < prism.size(); ++a) {
-						intersection = vec2(triangle(ro, rd, prism[a][0], prism[a][1], prism[a][2]).x, triangle(ro, rd, prism[a][0], prism[a][1], prism[a][2]).z);
-						if (intersection.x > 0) {
-							minIt = intersection.x;
-							vec3 v0 = prism[a][0] - prism[a][1];
-							vec3 v1 = prism[a][2] - prism[a][1];
-							n = norm(cross(v0, v1));
-							albedo = -2.0;
-						}
-					}
-
-					std::vector<std::vector<vec3>> pyramid = Pyramid(4, -2.0, 1.5, vec3(0, -5, 1));
-					for (int a = 0; a < pyramid.size(); ++a) {
-						intersection = vec2(triangle(ro, rd, pyramid[a][0], pyramid[a][1], pyramid[a][2]).x, triangle(ro, rd, pyramid[a][0], pyramid[a][1], pyramid[a][2]).z);
-						if (intersection.x > 0) {
-							minIt = intersection.x;
-							vec3 v0 = pyramid[a][0] - pyramid[a][1];
-							vec3 v1 = pyramid[a][2] - pyramid[a][1];
-							n = norm(cross(v0, v1));
-							albedo = 1.0;
-						}
-					}
-
-					intersection = plane(ro, rd, vec3(0, 0, -1), 1);
-					if (intersection.x > 0 && intersection.x < minIt) {
-						minIt = intersection.x;
-						n = vec3(0, 0, -1);
-						albedo = 0.5;
-					}
-
-					if (minIt < 99999) {
-						if (albedo == -2.0) diff = (double)gradientSize / 30;
-						else if (albedo < 0.0) {
-							double fresnel = 1.0 - abs(dot(-rd, n));
-							if ((double)(rand()) / ((double)(RAND_MAX)) - 0.1 < fresnel * fresnel) {
-								rd = reflect(rd, n);
-							}
-							else {
-								ro = ro + rd * (minIt + 0.001);
-								rd = refract(rd, n, 1.0 / (1.0 - albedo));
-							}
-						}
-						else {
-							diff *= (dot(n, light) * 0.5 + 0.5) * albedo;
-							ro = ro + rd * (minIt - 0.01);
-							rd = reflect(rd, n);
-						}
-					}
-					else break;
-				}
-				int color = (int)(diff * 30);
-				color = clamp(color, 0, gradientSize);
+				double col = TraceRay(ro, rd);
+				int color = (int)gradientSize * col;
 				char pixel = gradient[gradientSize - color];
 				screen[i + j * width] = pixel;
 			}
 		}
 		screen[width * height - 1] = '\0';
 		WriteConsoleOutputCharacter(hConsole, screen, width * height, { 0, 0 }, &dwBytesWritten);
-		++t;
+
 		for (int i = 0; i < 6; ++i) {
 			wasdUD[i] = false;
 		}
+		++frames;
 	}
 }
